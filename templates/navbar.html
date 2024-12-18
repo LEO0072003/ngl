@@ -1,0 +1,14 @@
+<nav
+    style="display: flex; justify-content: center; align-items: center; width: 100%; padding: 10px 20px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+    {% if request.user.is_authenticated %}
+    <div>
+        <h1 style="text-align: center;">
+            {% if request.user.is_staff %}
+            Hello Admin
+            {% else %}
+            Hello {{ request.user.username }}
+            {% endif %}
+        </h1>
+    </div>
+    {% endif %}
+</nav>

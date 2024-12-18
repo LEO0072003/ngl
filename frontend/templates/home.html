@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div id="loading" style="display: none;">
+    <p>Loading...</p> <!-- You can replace this with an actual spinner -->
+</div>
+
+<div id="data-container"></div>
+
+<style>
+    .home-app-element {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        /* Defines the width for each column */
+        /* Space between columns */
+        background-color: #DEE7EE;
+        /* Light background */
+        margin-bottom: 23px;
+    }
+
+    .col {
+        padding: 10px;
+    }
+
+    .item-container {
+        display: flex;
+        /* Use flexbox to align items side by side */
+        align-items: center;
+        /* Vertically center the items */
+        gap: 10px;
+        /* Add some space between the image and the text */
+    }
+
+    .item-pic {
+        width: 100px;
+        /* Set the image width */
+        height: 100px;
+        /* Set the image height */
+    }
+
+    .item-container>div>h1 {
+        margin: 0;
+    }
+
+    .item-container>div>p {
+        font-size: small;
+        margin: 0;
+    }
+
+    .cl3>div>p {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #8DD7CE;
+        margin: 0px;
+        height: 45px;
+        margin-top: 25px;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let nextPageUrl = '/app/app-crud/';  // Starting point (first page)
+        let isLoading = false;  // Flag to prevent multiple fetch calls while data is being loaded
+
+        // Function to fetch data from the API
+        function fetchData(url) {
+            if (isLoading) return;  // Prevent multiple fetch calls
+            isLoading = true;
+            document.getElementById("loading").style.display = "block";  // Show loading spinner
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    isLoading = false;
+                    document.getElementById("loading").style.display = "none";  // Hide loading spinner
+
+                    // Render each item
+                    const dataContainer = document.getElementById("data-container");
+                    data.results.forEach(item => {
+                        const div = document.createElement("div");
+                        div.classList.add("item");
+                        const url = item.id;
+
+                        // Create the content for each item
+                        div.innerHTML = `
+                        <div class="home-app-element" style="display: grid;">
+                            <div class="col cl1">
+                                <div class="item-container">
+                                    <img src="${item.pic}" alt="${item.app_name}" class="item-pic" width="100" height="100" />
+                                    <div>
+                                        <h1>${item.app_name}</h1>
+                                        {% if not request.user.is_staff %}
+                                            <p><a href="/app-detail/${item.id}">View In Detail</a></p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col cl3">
+                                <div class="points">
+                                    <p>${item.points} Points</p>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        `
+
+                        // Append the item to the container
+                        dataContainer.appendChild(div);
+                    });
+
+                    // Update the next page URL for the next fetch
+                    nextPageUrl = data.next;
+                })
+                .catch(error => {
+                    isLoading = false;
+                    document.getElementById("loading").style.display = "none";  // Hide loading spinner
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        // Initial fetch
+        fetchData(nextPageUrl);
+
+        // Scroll event to load next page
+        window.addEventListener('scroll', () => {
+            // Check if we are at the bottom of the page
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 && nextPageUrl) {
+                fetchData(nextPageUrl);
+            }
+        });
+    });
+
+</script>
+{% endblock content %}

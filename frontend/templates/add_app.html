@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form id="imageForm" onsubmit="createApp(event)" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div id="imageBox" class="image-box">
+        <input type="file" id="fileInput" name="pic" accept="image/*" style="display: none;"
+            onchange="previewImage(event)" required>
+        <div id="labelContainer">
+            <label for="fileInput" class="upload-text" style="cursor: pointer;">Click to upload image</label>
+        </div>
+        <img id="uploadedImage" src="" alt="Uploaded Image" style="display: none;">
+    </div>
+    <div class="fields">
+        <div class="upper">
+            <input type="text" name="app_name" placeholder="App Name" required>
+            <input type="text" name="app_link" placeholder="App Link" required>
+        </div>
+        <div class="lower">
+            <select id="appCategory" onchange="loadSubCategories()" class="dropdown">
+                <option value="">Select App Category</option>
+            </select>
+            <select id="subCategory" name="sub_category" class="dropdown">
+                <option value="">Select Sub Category</option>
+            </select>
+        </div>
+    </div>
+    <div class="add-points">
+        <button class="add-points-btn" onclick="addPointsButton()">ADD POINTS</button>
+    </div>
+
+    <div class="submit-btn">
+        <!-- <button type="submit" style="background-color:#F1C29C">Submit</button> -->
+
+    </div>
+
+
+</form>
+
+<style>
+    .add-points,
+    .submit-btn {
+        display: flex;
+        justify-content: center;
+    }
+
+
+    .submit-btn button,
+    .add-points button,
+    .add-points input {
+        height: 50px;
+        width: 200px;
+        background-color: #8DD7CE;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    /* Remove arrows for Chrome, Safari, Edge */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+
+    /* Center the image upload box */
+    .image-box {
+        width: 300px;
+        height: 300px;
+        border: 2px dashed #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-direction: column;
+        text-align: center;
+        margin: 0 auto;
+    }
+
+    /* Hide the "Click to upload" text once the image is uploaded */
+    .upload-text {
+        display: block;
+    }
+
+    #uploadedImage {
+        max-width: 100%;
+        max-height: 100%;
+        display: none;
+    }
+
+    /* Optional: style to make the label centered within the box */
+    #labelContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Flexbox for side-by-side inputs */
+    .upper,
+    .lower {
+        display: flex;
+        gap: 10px;
+        /* space between inputs */
+    }
+
+    input,
+    select {
+        flex: 1;
+        padding: 10px;
+        margin: 5px 0;
+    }
+
+    /* Styling for the select dropdowns */
+    select {
+        cursor: pointer;
+        width: 100%;
+    }
+
+    /* Optional: to add more space between upper and lower sections */
+    .fields {
+        margin: 20px;
+    }
+</style>
+
+<script>
+
+    function createApp(event) {
+        event.preventDefault();
+
+        const formData = new FormData(document.getElementById('imageForm')); // Create a FormData object from the form
+        fetch('/app/app-crud/', {  // Replace with your actual API endpoint
+            method: 'POST',
+            body: formData,
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error creating app');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Handle the response from the API (success or failure)
+                console.log('App created successfully:', data);
+                window.location.href = '/';
+            })
+            .catch(error => {
+                // Handle any error that occurred during the request
+                console.error('Error:', error);
+                alert('Failed to create app.');
+            });
+    }
+    function previewImage(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            const imageElement = document.getElementById("uploadedImage");
+            const labelContainer = document.getElementById("labelContainer");
+
+            // Display the uploaded image and hide the label text
+            imageElement.src = e.target.result;
+            imageElement.style.display = 'block';  // Show the uploaded image
+            labelContainer.style.display = 'none'; // Hide the "Click to upload" text
+        };
+
+        if (file) {
+            reader.readAsDataURL(file);  // Convert the image to a data URL
+        }
+    }
+
+    // Function to load categories from API
+    function loadCategories() {
+        fetch('/app/category/')  // Replace with your API endpoint
+            .then(response => response.json())
+            .then(data => {
+                const categorySelect = document.getElementById("appCategory");
+                data.forEach(category => {
+                    const option = document.createElement("option");
+                    option.value = category[0];
+                    option.textContent = category[1];
+                    categorySelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error loading categories:', error));
+    }
+
+    // Function to load sub-categories based on selected category
+    function loadSubCategories() {
+        const categoryId = document.getElementById("appCategory").value;
+
+        if (!categoryId) {
+            document.getElementById("subCategory").innerHTML = '<option value="">Select Sub Category</option>';
+            return;
+        }
+
+        fetch(`/app/sub-category/${categoryId}`)  // Replace with your API endpoint
+            .then(response => response.json())
+            .then(data => {
+                const subCategorySelect = document.getElementById("subCategory");
+                subCategorySelect.innerHTML = '<option value="">Select Sub Category</option>';  // Reset options
+
+                data.forEach(subCategory => {
+                    const option = document.createElement("option");
+                    option.value = subCategory[0];
+                    option.textContent = subCategory[1];
+                    subCategorySelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error loading subcategories:', error));
+    }
+
+    function addPointsButton() {
+        const button = document.querySelector(".add-points-btn"); // Finds the first button with the class "deleteMe"
+        if (button) {
+            button.remove(); // Remove the button
+        }
+
+        const container = document.querySelector('.add-points')
+        const div = document.createElement("div")
+        div.innerHTML = `
+        <div class="points-button">
+            <input type="number" name="points" id="points" placeholder="Add Points" required>
+
+        </div>`
+        /*
+        <div class="submit">
+            <button type="submit" style="background-color:#F1C29C">Submit</button>
+
+        </div>*/
+        container.appendChild(div);
+
+        const container2 = document.querySelector('.submit-btn')
+        const btn = document.createElement("button")
+        btn.setAttribute("type", "submit")
+        btn.style.backgroundColor = "#F1C29C";
+        btn.textContent = "Submit";
+        container2.appendChild(btn);
+
+        document.querySelector('form').addEventListener('submit', function (event) {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                alert('Please select an image!');
+                event.preventDefault();
+            }
+        });
+
+    }
+    // Initial category load on page load
+    window.onload = function () {
+        loadCategories();
+    };
+
+</script>
+{% endblock content %}

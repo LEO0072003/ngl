@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="loading" style="display:none;">Loading...</div> <!-- Loading Spinner -->
+<div id="data-container"></div> <!-- Container for rendering results -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const url = '/user/app-download/';
+        let isLoading = false;  // Flag to prevent multiple fetch calls while data is being loaded
+
+        // Show loading spinner when fetch starts
+        function showLoading() {
+            document.getElementById("loading").style.display = "block";
+        }
+
+        // Hide loading spinner when fetch is complete or fails
+        function hideLoading() {
+            document.getElementById("loading").style.display = "none";
+        }
+
+        // Fetch data from the API
+        function fetchData(url) {
+            if (isLoading) return;  // Prevent multiple fetch calls
+            isLoading = true;
+            showLoading();  // Show the loading spinner
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    renderData(data.results);  // Call renderData to display results
+                    hideLoading();  // Hide the loading spinner
+                    isLoading = false;  // Reset the flag
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    hideLoading();  // Hide the loading spinner in case of error
+                    isLoading = false;  // Reset the flag
+                });
+        }
+
+        // Render each item from the response in a block
+        function renderData(results) {
+            const container = document.getElementById("data-container");
+            container.innerHTML = "";  // Clear any previous content
+
+            results.forEach(item => {
+                // Create a new block for each item
+                const block = document.createElement("div");
+                block.classList.add("data-block");
+
+                // Add content to the block
+                block.innerHTML = `
+                    <div class="home-app-element" style="display: grid;">
+                        <div><strong>Point:</strong> ${item.point}</div>
+                        <div><strong>App:</strong> ${item.app}</div>
+                        <div><strong>Screenshot:</strong></div>
+                        <img src="${item.screenshot}" alt="Screenshot" style="width:100px;height:auto;">
+                    </div>
+                `;
+
+                // Append the block to the container
+                container.appendChild(block);
+            });
+        }
+
+        // Call fetchData function when needed (e.g., when a button is clicked or after page load)
+        fetchData(url);  // This will run the fetch on page load
+    });
+</script>
+
+<style>
+    .home-app-element {
+        display: grid;
+        /* Defines the width for each column */
+        /* Space between columns */
+        background-color: #DEE7EE;
+        /* Light background */
+        margin-bottom: 23px;
+    }
+</style>
+{% endblock content %}

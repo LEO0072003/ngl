@@ -1,0 +1,24 @@
+<div class="app-detail">
+    <div class="upper">
+        <div class="col">
+            <img src="${data.pic}" width="100" height="100">
+        </div>
+        <div class="col">
+            <h2>${data.app_name}</h2>
+            <a href=${data.app_link} style="font-size: small;">${data.app_link}</a>
+        </div>
+        <div class="col">
+            <div class="points">
+                <span>
+                    ${data.points}
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="lower">
+        <div id="drop_zone" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+            {% csrf_token %}
+            <img src="/media/app/default.png" alt="">
+            <p>Upload Screenshots to complete the Task</p>
+        </div>
+    </div>

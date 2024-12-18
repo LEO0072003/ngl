@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<div id="detail-content">
+    {% csrf_token %}
+</div>
+<script type="text/javascript">
+    let app_id = null;
+    var pk = "{{pk}}";
+    let appData = null;
+    document.addEventListener('DOMContentLoaded', function () {
+
+        function fetchAppDetail() {
+            fetch(`/app/app-crud/${pk}/`)
+                .then(response => response.json())
+                .then(data => {
+                    appData = data;
+                    app_id = data.id;
+                    const dataContainer = document.getElementById('detail-content');
+                    const div = document.createElement("div");
+                    div.classList.add("detail");
+                    div.innerHTML = `
+                            <div class="app-detail">
+                                <div class="upper">
+                                    <div class="col">
+                                        <img src="${data.pic}" width="100" height="100">
+                                    </div>
+                                    <div class="col">
+                                        <h2>${data.app_name}</h2>
+                                        <a href=${data.app_link} style="font-size: small;">${data.app_link}</a>
+                                    </div>
+                                    <div class="col">
+                                        <div class="points">
+                                            <span>
+                                                ${data.points}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="lower">
+                                    <div id="drop_zone" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+                                        {% csrf_token %}
+                                        <img src="/media/app/default.png" alt="">
+                                        <p>Upload Screenshots to complete the Task</p>
+                                    </div>
+                                </div>
+
+                            `
+                    dataContainer.appendChild(div);
+                })
+                .catch(error => {
+                    isLoading = false;
+                    console.error('Error fetching data:', error);
+                });
+
+        }
+        fetchAppDetail();
+    })
+
+    let originalContent = null; // To store the original content of the drop zone
+
+    function dropHandler(ev) {
+        console.log("File(s) dropped");
+
+        // Prevent default behavior (Prevent file from being opened)
+        ev.preventDefault();
+
+        const dropZone = document.getElementById('drop_zone');
+        if (ev.dataTransfer.items) {
+            // Use DataTransferItemList interface to access the file(s)
+            [...ev.dataTransfer.items].forEach((item, i) => {
+                if (item.kind === "file") {
+                    const file = item.getAsFile();
+
+                    // Validate the file type
+                    if (file.type.startsWith('image/')) {
+                        console.log(`Image file dropped: ${file.name}`);
+
+                        // Update the drop zone content with the file name
+                        dropZone.innerHTML = `
+                            <p>Image selected: ${file.name}</p>
+                            {% csrf_token %}
+                            <button id="upload-btn">Upload</button>
+                        `;
+
+                        // Add an event listener to the upload button
+                        document.getElementById('upload-btn').addEventListener('click', () => {
+                            uploadFile(file);
+                        });
+                    } else {
+                        alert('Only image files are allowed.');
+                        resetDropZone();
+                    }
+                }
+            });
+        } else {
+            // Use DataTransfer interface to access the file(s)
+            [...ev.dataTransfer.files].forEach((file, i) => {
+                // Validate the file type
+                if (file.type.startsWith('image/')) {
+                    console.log(`Image file dropped: ${file.name}`);
+
+                    // Update the drop zone content with the file name
+                    dropZone.innerHTML = `
+                        <p>Image selected: ${file.name}</p>
+                        <button id="upload-btn">Upload</button>
+                    `;
+
+                    // Add an event listener to the upload button
+                    document.getElementById('upload-btn').addEventListener('click', () => {
+                        uploadFile(file);
+                    });
+                } else {
+                    alert('Only image files are allowed.');
+                    resetDropZone();
+                }
+            });
+        }
+    }
+
+    function dragOverHandler(ev) {
+        ev.preventDefault();
+        const dropZone = document.getElementById('drop_zone');
+
+        // Save the original content on the first dragover
+        if (!originalContent) {
+            originalContent = dropZone.innerHTML;
+        }
+
+        // Update drop zone content
+        dropZone.innerHTML = `
+            <p>Drop the image file here...</p>
+        `;
+        dropZone.style.backgroundColor = "#f0f0f0"; // Highlight the drop zone
+    }
+
+    function dragLeaveHandler(ev) {
+        resetDropZone(); // Restore original content when drag leaves
+    }
+
+    function resetDropZone() {
+        const dropZone = document.getElementById('drop_zone');
+        if (originalContent) {
+            dropZone.innerHTML = originalContent;
+            dropZone.style.backgroundColor = "white"; // Reset background color
+        }
+    }
+
+    function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('screenshot', file);
+        formData.append('app', app_id);
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // Make an API call to upload the file
+        fetch('/user/app-download/', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-CSRFToken': csrftoken }
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Image uploaded successfully:', data);
+                alert('Image uploaded successfully!');
+                window.location.href = '/?q=task'
+            })
+            .catch(error => {
+                console.error('Error uploading image:', error);
+                alert('Error uploading image. Please try again.');
+                resetDropZone();
+            });
+    }
+
+    // Attach event listeners to the drop zone
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropZone = document.getElementById('drop_zone');
+        dropZone.addEventListener('dragover', dragOverHandler);
+        dropZone.addEventListener('dragleave', dragLeaveHandler);
+        dropZone.addEventListener('drop', dropHandler);
+    });
+
+</script>
+
+<style>
+    .app-detail {
+        padding: 30px;
+        width: 100%;
+        background-color: #DEE7EE;
+        height: fit-content;
+        /* Add any global styling as needed */
+    }
+
+    .upper {
+        display: flex;
+        justify-content: space-between;
+        /* This distributes the columns evenly */
+        align-items: center;
+        /* Vertically center the content */
+    }
+
+    .col {
+        flex: 1;
+        padding: 10px;
+    }
+
+    .upper .col:nth-child(1) {
+        flex: 1;
+    }
+
+    /* Second column (will take 3 parts of the available space) */
+    .upper .col:nth-child(2) {
+        flex: 4;
+    }
+
+    /* Third column (will take 1 part of the available space) */
+    .upper .col:nth-child(3) {
+        flex: 2;
+        padding-right: 40px;
+    }
+
+    .col img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    #dropContainer {
+        height: 500px;
+        width: 500px;
+    }
+
+    .points {
+        display: flex;
+        justify-content: center;
+        /* Centers horizontally */
+        align-items: center;
+        /* Centers vertically */
+        background-color: #8DD7CE;
+        height: 40px;
+    }
+
+    .points>span {
+        padding: 15px;
+    }
+
+    .upper .col:nth-child(2) h3,
+    .upper .col:nth-child(2) span {
+        display: block;
+    }
+
+    .lower {
+        margin-top: 20px;
+        margin-right: 35px;
+    }
+
+    #drop_zone {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 300px;
+        border: 2px dashed #ccc;
+        text-align: center;
+        box-sizing: border-box;
+        width: 100%;
+        background-color: white;
+        text-align: center;
+    }
+</style>
+{% endblock content %}

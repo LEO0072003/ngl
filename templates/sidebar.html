@@ -1,0 +1,140 @@
+<!-- <div>
+    {% if request.user.is_staff %}
+    <ul>
+        <li class="sidebar-item selected" onclick="selectItem(this, 'home')"><i class="fas fa-home"></i>
+            <span>Home</span>
+        </li>
+        <li class="sidebar-item" onclick="selectItem(this, 'apps')"><i class="fas fa-plus"></i> <span>Add Apps</span>
+        </li>
+        <li class="sidebar-item" onclick="logout(this)"><i class="fas fa-power-off "></i> <span>Logout</span></li>
+    </ul>
+    {% else %}
+    <ul>
+        <li class="sidebar-item selected" onclick="selectItem(this, 'home')"><i class="fas fa-home "></i>
+            <span>Home</span>
+        </li>
+        <li class="sidebar-item" onclick="selectItem(this,'profile')"><i class="fas fa-user "></i> <span>Profile</span>
+        </li>
+        <li class="sidebar-item" onclick="selectItem(this, 'points')"><i class="fas fa-database "></i>
+            <span>Points</span>
+        </li>
+        <li class="sidebar-item" onclick="selectItem(this, 'task')"><i class="fas fa-calendar-check "></i>
+            <span>Task</span>
+        </li>
+        <li class="sidebar-item" onclick="logout(this)"><i class="fas fa-power-off "></i> <span>Logout</span>
+        </li>
+    </ul>
+    {% endif %}
+</div>
+
+<script>
+    window.localStorage.setItem("selectedSection", "profile");
+    function selectItem(item, type) {
+        window.localStorage.setItem("selectedSection", type);
+        // Remove "selected" class from all items
+        const items = document.querySelectorAll('.sidebar-item');
+        items.forEach(i => i.classList.remove('selected'));
+        // Add "selected" class to the clicked item
+        item.classList.add('selected');
+    }
+
+    function logout(item) {
+        selectItem(item);
+        window.location.href = window.location.origin + "/logout/";
+    }
+</script> -->
+
+
+<div>
+    {% if request.user.is_staff %}
+    <ul>
+        <li class="sidebar-item" data-type="home" onclick="selectItem(this, 'home')">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </li>
+        <li class="sidebar-item" data-type="apps" onclick="selectItem(this, 'apps')">
+            <i class="fas fa-plus"></i>
+            <span>Add Apps</span>
+        </li>
+        <li class="sidebar-item" onclick="logout(this)">
+            <i class="fas fa-power-off "></i>
+            <span>Logout</span>
+        </li>
+    </ul>
+    {% else %}
+    <ul>
+        <li class="sidebar-item" data-type="home" onclick="selectItem(this, 'home')">
+            <i class="fas fa-home "></i>
+            <span>Home</span>
+        </li>
+        <li class="sidebar-item" data-type="profile" onclick="selectItem(this, 'profile')">
+            <i class="fas fa-user "></i>
+            <span>Profile</span>
+        </li>
+        <li class="sidebar-item" data-type="points" onclick="selectItem(this, 'points')">
+            <i class="fas fa-database "></i>
+            <span>Points</span>
+        </li>
+        <li class="sidebar-item" data-type="task" onclick="selectItem(this, 'task')">
+            <i class="fas fa-calendar-check "></i>
+            <span>Task</span>
+        </li>
+        <li class="sidebar-item" onclick="logout(this)">
+            <i class="fas fa-power-off "></i>
+            <span>Logout</span>
+        </li>
+    </ul>
+    {% endif %}
+</div>
+
+<script>
+    // Get the current URL
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Get the value of the 'q' parameter
+    const qValue = urlParams.get('q');
+
+    if (!qValue) {
+        selectedSection = "home";  // Default value
+        window.localStorage.setItem("selectedSection", selectedSection);  // Save the default value to localStorage
+    }
+
+    // When the page loads, check if there's a selected section stored in localStorage
+    window.addEventListener('DOMContentLoaded', (event) => {
+
+        const selectedSection = window.localStorage.getItem("selectedSection");
+        if (selectedSection) {
+            // Find the sidebar item with the corresponding "data-type"
+            const items = document.querySelectorAll('.sidebar-item');
+            items.forEach(item => {
+                if (item.getAttribute('data-type') === selectedSection) {
+                    item.classList.add('selected');
+                }
+            });
+        }
+        else {
+
+        }
+    });
+
+    // Function to handle item selection
+    function selectItem(item, type) {
+        // Save the selected type to localStorage
+        window.localStorage.setItem("selectedSection", type);
+
+        // Remove "selected" class from all items
+        const items = document.querySelectorAll('.sidebar-item');
+        items.forEach(i => i.classList.remove('selected'));
+
+        // Add "selected" class to the clicked item
+        item.classList.add('selected');
+
+        window.location.href = "/" + "?q=" + type;
+    }
+
+    // Logout function
+    function logout(item) {
+        selectItem(item); // Mark the item as selected (even if it's the logout item)
+        window.location.href = window.location.origin + "/logout/";
+    }
+</script>

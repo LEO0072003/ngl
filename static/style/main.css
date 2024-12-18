@@ -1,0 +1,84 @@
+body {
+    background: #DFE7EE;
+    overflow-x: hidden;
+}
+
+nav {
+    background: #ffffff;
+    height: 45px;
+    border: 1px;
+    margin: 2px;
+}
+
+html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+/* Flex container to hold the sidebar and content */
+.container {
+    display: flex; /* Enables flex layout */
+    height: 100vh; /* Full height */
+}
+
+
+/* Main content style */
+.main-content {
+    flex-grow: 1; /* Takes up the remaining space */
+    background-color: #f4f4f4; /* Light background */
+    padding: 20px;
+    box-sizing: border-box;
+    margin-top: 50px;
+}
+/* Sidebar style */
+.sidebar {
+    width: 250px; /* Fixed width for the sidebar */
+    background-color: transparent; /* Dark background */
+    color: #6457F6; /* Text color */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Sidebar item style */
+.sidebar-item {
+    display: flex; /* Use flexbox for positioning the icon and text */
+    align-items: center; /* Vertically align the icon and text */
+    background-color: white;
+    color: #6457F6;
+    padding: 15px;
+    list-style-type: none;
+    margin: 10px 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left; /* Align text left */
+}
+
+/* Style for icons inside sidebar items */
+.sidebar-item i.sidebar-icon {
+    margin-right: 10px; /* Space between the icon and the text */
+    color: black; /* Icon color */
+}
+
+/* Style for icons inside sidebar items */
+.sidebar-item span {
+    margin-left: 30px; /* Space between the icon and the text */
+}
+
+/* Hover effect */
+.sidebar-item:hover {
+    background-color: #6457F6;
+    color: white;
+}
+
+.sidebar-item.selected {
+    background-color: #6457F6;
+    color: white;
+}
+
+/* Additional styling for icons if needed */
+.sidebar-icon {
+    font-size: 18px; /* Icon size */
+    margin-right: 10px; /* Add space between icon and text */
+}
